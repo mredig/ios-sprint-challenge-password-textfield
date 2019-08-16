@@ -94,6 +94,7 @@ class PasswordField: UIControl {
 		textFieldContainer.layer.cornerRadius = 5
 		textField.isSecureTextEntry = true
 		textField.addTarget(self, action: #selector(passwordChanged), for: .editingChanged)
+		textField.delegate = self
 
 		showHideButton.addTarget(self, action: #selector(toggleSecureText), for: .touchUpInside)
 
@@ -130,15 +131,6 @@ class PasswordField: UIControl {
         super.init(coder: aDecoder)
         setup()
     }
-
-	@IBAction func passwordChanged(_ sender: UITextField) {
-		password = sender.text ?? ""
-	}
-
-	@objc func toggleSecureText() {
-		textField.isSecureTextEntry.toggle()
-		updateViews()
-	}
 
 	private func updateViews() {
 		updateShowHideButton()
@@ -182,14 +174,39 @@ class PasswordField: UIControl {
 	}
 }
 
-//extension PasswordField: UITextFieldDelegate {
-//    func textField(_ textField: UITextField, shouldChangeCharactersIn range: NSRange, replacementString string: String) -> Bool {
-//        let oldText = textField.text!
-//        let stringRange = Range(range, in: oldText)!
-//        let newText = oldText.replacingCharacters(in: stringRange, with: string)
-//        // TODO: send new text to the determine strength method
-//        return true
-//    }
-//
-//
-//}
+// MARK: - ui actions
+extension PasswordField {
+
+	@objc func toggleSecureText() {
+		textField.isSecureTextEntry.toggle()
+		updateViews()
+	}
+
+
+	@objc private func passwordChanged(_ sender: UITextField) {
+		password = sender.text ?? ""
+		sendActions(for: .editingChanged)
+	}
+
+	@objc private func editingDidEnd(_ sender: UITextField) {
+		password = sender.text ?? ""
+		sendActions(for: .editingDidEnd)
+	}
+
+	@objc private func editingDidBegin(_ sender: UITextField) {
+		password = sender.text ?? ""
+		sendActions(for: .editingDidBegin)
+	}
+
+	@objc private func editingDidEndOnExit(_ sender: UITextField) {
+		password = sender.text ?? ""
+		sendActions(for: .editingDidEndOnExit)
+	}
+}
+
+extension PasswordField: UITextFieldDelegate {
+	func textFieldShouldReturn(_ textField: UITextField) -> Bool {
+		textField.resignFirstResponder()
+		return true
+	}
+}
