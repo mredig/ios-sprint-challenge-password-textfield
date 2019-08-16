@@ -17,7 +17,11 @@ class PasswordField: UIControl {
 	}
     
     // Public API - these properties are used to fetch the final password and strength values
-    private (set) var password: String = ""
+	private (set) var password: String = "" {
+		didSet {
+			updateViews()
+		}
+	}
 	var passwordStrength: PasswordStrength {
 		return determineStrength()
 	}
@@ -91,6 +95,8 @@ class PasswordField: UIControl {
 		textField.isSecureTextEntry = true
 		textField.addTarget(self, action: #selector(passwordChanged), for: .editingChanged)
 
+		showHideButton.addTarget(self, action: #selector(toggleSecureText), for: .touchUpInside)
+
 		let stackView2 = UIStackView()
 		stackView2.axis = .horizontal
 		stackView2.alignment = .center
@@ -127,7 +133,11 @@ class PasswordField: UIControl {
 
 	@IBAction func passwordChanged(_ sender: UITextField) {
 		password = sender.text ?? ""
-		print(password)
+	}
+
+	@objc func toggleSecureText() {
+		textField.isSecureTextEntry.toggle()
+		updateViews()
 	}
 
 	private func updateViews() {
