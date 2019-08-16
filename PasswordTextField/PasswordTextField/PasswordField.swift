@@ -85,6 +85,7 @@ class PasswordField: UIControl {
 		textFieldStackView.addArrangedSubview(textField)
 		textFieldStackView.addArrangedSubview(showHideButton)
 		showHideButton.setContentCompressionResistancePriority(UILayoutPriority(751), for: .horizontal)
+		showHideButton.setContentHuggingPriority(UILayoutPriority(251), for: .horizontal)
 		textFieldStackView.alignment = .fill
 		textFieldStackView.distribution = .fill
 		textFieldStackView.spacing = textFieldMargin
@@ -163,10 +164,39 @@ class PasswordField: UIControl {
 	}
 
 	private func determineStrength() -> PasswordStrength {
-		switch password.count {
+		var score = password.count
+
+		let specialCharacters = password.replacingOccurrences(of: ##"[a-zA-Z0-9]"##, with: "", options: .regularExpression, range: nil)
+		let letters = password.replacingOccurrences(of: ##"[^A-Za-z]"##, with: "", options: .regularExpression, range: nil)
+		let capitalLetters = letters.replacingOccurrences(of: ##"[^A-Z]"##, with: "", options: .regularExpression, range: nil)
+		let lowerLetters = letters.replacingOccurrences(of: ##"[^a-z]"##, with: "", options: .regularExpression, range: nil)
+		let numbers = password.replacingOccurrences(of: ##"[^0-9]"##, with: "", options: .regularExpression, range: nil)
+
+		let lowerDups = lowerLetters.count - Set(lowerLetters).count
+		score -= lowerDups
+
+		let capitalDups = capitalLetters.count - Set(capitalLetters).count
+		score -= capitalDups
+
+		if !lowerLetters.isEmpty && !capitalLetters.isEmpty {
+			score += 5
+			if letters.count > 8 && Int(Double(letters.count) * 0.5) > (capitalDups + lowerDups) {
+				score += 5
+			}
+		}
+
+		let numberDups = numbers.count - Set(numbers).count
+		score -= numberDups
+
+		if !specialCharacters.isEmpty {
+			let value = Int(Double(specialCharacters.count) * 0.1 + 1)
+			score += min(value, 7)
+		}
+
+		switch score {
 		case ...10:
 			return .weak
-		case 10...20:
+		case 10...19:
 			return .medium
 		default:
 			return .stronk
@@ -185,7 +215,7 @@ extension PasswordField {
 
 	@objc private func passwordChanged(_ sender: UITextField) {
 		password = sender.text ?? ""
-		sendActions(for: .editingChanged)
+		sendActions(for: [.editingChanged, .valueChanged])
 	}
 
 	@objc private func editingDidEnd(_ sender: UITextField) {
@@ -206,6 +236,7 @@ extension PasswordField {
 
 extension PasswordField: UITextFieldDelegate {
 	func textFieldShouldReturn(_ textField: UITextField) -> Bool {
+		sendActions(for: .editingDidEnd)
 		textField.resignFirstResponder()
 		return true
 	}

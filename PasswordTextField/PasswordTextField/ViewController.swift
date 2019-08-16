@@ -10,7 +10,8 @@ import UIKit
 
 class ViewController: UIViewController {
     
-    // For use in the stretch goal
+	@IBOutlet var passwordField: PasswordField!
+	// For use in the stretch goal
     //
     // Uncomment this entire method, then run the app.
     // A dictionary view should appear, with a "manage" button
@@ -27,4 +28,8 @@ class ViewController: UIViewController {
 //        let referenceVC = UIReferenceLibraryViewController(term: str)
 //        present(referenceVC, animated: true, completion: nil)
 //    }
+
+	@IBAction func passwordEntered(_ sender: PasswordField) {
+		print(sender.password)
+	}
 }
